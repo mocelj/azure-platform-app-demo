@@ -1,4 +1,4 @@
-# One demo maintainer represents both roles, not independent separation of duties.
+# One maintainer covers both roles in the demo. Use separate reviewers in production.
 * @mocelj
 /apps/ @mocelj
 /samples/ @mocelj
