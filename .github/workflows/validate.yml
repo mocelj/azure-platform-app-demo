@@ -41,4 +41,4 @@ jobs:
             echo "Configuration or application validation did not pass." >&2
             exit 1
           fi
-          echo "Approved configuration and sample checks passed. No Azure operation was performed."
+          echo "Application configuration and sample checks passed. Nothing was deployed to Azure."

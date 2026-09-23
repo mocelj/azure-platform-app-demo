@@ -1,11 +1,27 @@
 # Security policy
 
-This public consumer repository contains synthetic requests and illustrative application code. It is not production-ready or FSI-compliant, and passing its checks does not establish an Azure deployment.
+This public repository holds example configuration and application source.
+Deployment privileges and environment bindings remain in the catalog's operating
+environment. The release has passed CI, but Azure deployment and network
+verification have not been performed.
 
-Never add Azure credentials, OIDC permissions for deployment, private runners, real customer identifiers, SSH private keys, state, saved plans, or private environment bindings here. Public PR validation must remain credential-free and use hosted runners.
+PR validation uses hosted runners without Azure credentials, deployment OIDC,
+or private-runner access. Keep real customer identifiers, private environment
+bindings, SSH private keys, state, and saved plans out of this repository.
 
-Both catalog plan and apply require an exact consumer SHA already merged into approved `main`; PR validation is offline only, with no premerge Azure preview. The catalog retrieves approved configuration as data and independently revalidates it. It does not execute PR scripts, workflows, IaC, payloads, install hooks, or arbitrary URLs on the private runner. See [the walkthrough](docs/walkthrough.md) and [trusted payload release](docs/web-app-payload.md).
+Catalog plan and apply accept a full consumer SHA already merged into `main`.
+They retrieve and revalidate JSON rather than execute PR scripts, workflows,
+IaC, install hooks, or application source on the private runner. Premerge Azure
+preview is not supported. The [walkthrough](docs/walkthrough.md) and
+[application release guide](docs/web-app-payload.md) describe the two paths.
 
-To report a vulnerability, use **Security → Report a vulnerability** if private reporting is enabled. Otherwise, ask `mocelj` for a private channel without posting exploit details or sensitive information. Include the commit, target, and a synthetic reproduction. Do not submit live secrets or customer data.
+To report a vulnerability, use **Security → Report a vulnerability** if enabled.
+Otherwise, contact `mocelj` to arrange a private channel before sharing details.
+Include the commit, target, and a reproduction using test data, without live
+secrets or customer information.
 
-The application sample has no authentication or business-data protection. Private ingress is not a replacement for application authorization. Original code is provided under [MIT](LICENSE), without a support or security warranty. The [catalog security policy](https://github.com/mocelj/azure-platform-catalog/blob/main/SECURITY.md) explains the broader trust boundary.
+The sample has no application authentication or business-data controls; private
+ingress alone does not provide them. Original code is provided under [MIT](LICENSE).
+The [catalog security policy](https://github.com/mocelj/azure-platform-catalog/blob/main/SECURITY.md)
+covers deployment controls and the additional considerations for production or
+regulated use.

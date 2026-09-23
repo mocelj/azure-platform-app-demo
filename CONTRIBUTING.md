@@ -1,8 +1,11 @@
 # Contributing
 
-For the developer walkthrough, change only the selected `apps/<service>/<engine>/platform-app.json`. Use the [permitted size change](docs/walkthrough.md); engine, region, network, identity, dependencies, and security controls are platform-owned.
+For an infrastructure request, edit the relevant
+`apps/<service>/<engine>/platform-app.json`. The [walkthrough](docs/walkthrough.md)
+uses a size change to illustrate the process. Engine selection, networking,
+identity, dependencies, and security settings are maintained in the catalog.
 
-From a sibling catalog checkout at the approved revision:
+Validate against the catalog revision selected in `catalog-version.json`:
 
 ```powershell
 Set-Location ..\azure-platform-catalog
@@ -19,8 +22,16 @@ npm test
 npm run check
 ```
 
-Explain the target and intent, include actual validation results, and keep the diff small. Do not add environment secrets, IDs from a real customer, state, saved plans, credentials, or SSH private keys.
+Describe the target, reason for the change, and validation results. Keep
+configuration PRs focused so their infrastructure impact is easy to review.
+Real environment IDs, credentials, SSH private keys, state, and saved plans
+belong outside this public repository.
 
-Changes to workflows, catalog pins, ownership, or policy need platform-maintainer review. Do not mix such changes with a configuration-only PR. Payload releases are separately reviewed artifacts; a configuration PR does not authorize executing its application source on a private runner.
+Workflow, catalog-version, ownership, and policy changes need a separate
+platform-maintainer review. Application changes also have their own build and
+artifact release process; configuration validation does not execute application
+source on the private infrastructure runner.
 
-CODEOWNERS requests review but does not enforce branch protection. The demonstration uses one maintainer; this is not independent separation of duties. Original contributions use the [MIT license](LICENSE).
+CODEOWNERS routes reviews, while repository rules enforce them. This example
+uses one maintainer; a production process needs independent reviewers where
+separation of duties is required. Original contributions use the [MIT license](LICENSE).

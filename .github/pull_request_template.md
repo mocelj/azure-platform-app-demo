@@ -1,22 +1,25 @@
-## Platform request
+## Configuration change
 
 Target (`service-engine`):
 
 Configuration path:
 
-Reason and intended size change:
+Reason and expected effect:
 
 ## Checks
 
-- [ ] This configuration-only PR changes only the selected approved JSON request.
-- [ ] I ran the catalog validator at the approved revision and recorded its result.
-- [ ] I did not change engine, network, identity, runtime/image, workflows, or catalog pins.
+- [ ] The change is limited to the selected JSON request.
+- [ ] Validation used the catalog revision in the version metadata; results are below.
+- [ ] Engine, network, identity, runtime/image, workflows, and catalog pins are unchanged.
 - [ ] No credentials, customer data, or live environment bindings are included.
 
-Actual command and result:
+Commands and results:
 
 ## Handoff
 
-Consumer validation is not deployment authorization. After merge, a maintainer uses the catalog's trusted workflow with the exact consumer SHA. Azure preview/apply and application health are **not run** unless separately recorded.
+After merge, a platform maintainer can plan and apply the change through the
+catalog workflow using the consumer commit SHA. Note any deployment or
+application checks still needed.
 
-For a payload or platform-owned-file change, explain why this is not a configuration-only PR and request the separate review/release path.
+If this PR changes application code or platform-owned files instead, describe
+the separate review and release required.

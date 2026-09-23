@@ -2,7 +2,7 @@
   "name": "platform-demo-web-app",
   "version": "0.1.0",
   "private": true,
-  "description": "Dependency-free hello-world payload for the approved Web App platform app",
+  "description": "Small Node.js application for the Web App example, with no external dependencies",
   "type": "module",
   "license": "MIT",
   "engines": {
