@@ -1,22 +1,37 @@
-# Web App payload release
+# Releasing the Web App application
 
-Infrastructure provisioning and application content deployment are separate operations. The infrastructure runner must never check out or execute an untrusted consumer PR, including its `npm` scripts, install hooks, ZIP deployment hooks, or application code.
+The catalog provisions App Service; application content is built and released
+separately. That separation prevents PR code, install hooks, and deployment
+scripts from running with infrastructure credentials.
 
-This guide describes a **future trusted release**, not an executed deployment. Keep basic publishing authentication disabled. Do not use a publishing profile, FTP, Shared Key/SAS workaround, public SCM exposure, or long-lived Azure secret.
+This guide packages the sample and deploys it over private SCM using Entra
+authentication. Basic publishing and public access stay disabled. The path has
+not yet been exercised against a live Azure deployment.
 
-## Runtime contract
+## Runtime and startup
 
-The dependency-free [sample](../samples/web-app/README.md) is version **0.1.0**, tested with exact local Node **24.18.0** / npm **11.16.0**. It runs with `node server.js` and honors App Service's `PORT`.
+The dependency-free [sample](../samples/web-app/README.md), version `0.1.0`, uses
+Node `24.18.0` and npm `11.16.0` for local tests. It starts with `node server.js`
+and uses App Service's `PORT`.
 
-The wrapper uses Linux **`NODE|24-lts`**. App Service selects and patches the runtime within that supported family; `engines.node` in the sample is a development/test pin, **not** a guarantee of the Azure patch version. Verify the live runtime and platform support before release. If exact runtime bytes are a requirement, a separately approved digest-pinned container supply chain is needed; do not claim this native Web App meets that requirement.
+App Service uses the Linux `NODE|24-lts` family and manages its patches.
+`engines.node` records the development/test version, not a fixed Azure binary.
+Verify the runtime during deployment preparation. A requirement to control the
+runtime image byte-for-byte would call for a digest-pinned container and a
+corresponding image lifecycle process.
 
-Both Web App implementations configure startup as `node server.js` and explicitly route all outbound traffic through VNet integration (`outboundVnetRouting.allTraffic = true`). Those infrastructure settings do not upload this payload or prove private SCM reachability.
+Both infrastructure implementations configure `node server.js` and route outbound
+traffic through VNet integration (`outboundVnetRouting.allTraffic = true`).
+They do not upload application content.
 
-The sample exposes no environment details and has no external dependencies. It also has no authentication or business-data controls. A successful `/healthz` response only confirms that its HTTP process runs.
+The sample returns no environment details and has no external dependencies,
+authentication, or business-data controls. `/healthz` checks the HTTP process
+rather than downstream services.
 
-## Build and review away from the private runner
+## Build and package
 
-Use a reviewed immutable application commit in an isolated, credential-free build environment. For this walkthrough the commands below assume **PowerShell 7**, starting in the consumer root:
+Build a reviewed application commit in an isolated environment without Azure
+deployment credentials. From the consumer root in PowerShell 7:
 
 ```powershell
 Set-Location samples\web-app
@@ -28,22 +43,30 @@ Compress-Archive -Path server.js,package.json,package-lock.json -DestinationPath
 Get-FileHash out\web-app-0.1.0.zip -Algorithm SHA256
 ```
 
-The ZIP contains these three files at its root, not an enclosing repository directory. Record the exact application commit, artifact SHA-256, sample version, test evidence, and reviewer approval together. Upload the artifact through a separately approved release channel; do not fetch a user-supplied URL on the privileged runner.
+The ZIP has the three runtime files at its root rather than an enclosing repository
+directory. Keep the commit, SHA-256, sample version, test results, and release
+approval together. Transfer the artifact through the release process, not an
+arbitrary download URL supplied to the infrastructure runner.
 
-Before promotion, inspect the archive and package manifest. Reject additional executable deployment hooks, `.deployment`/custom build scripts, unexpected files, dependencies, or changed startup behavior unless separately reviewed. Do not enable `SCM_DO_BUILD_DURING_DEPLOYMENT`: this payload needs no restore/build during deployment.
+Review the archive and manifest before promotion, particularly changes to
+dependencies, startup, `.deployment`, or other executable hooks. This sample
+needs no server-side restore or build, so `SCM_DO_BUILD_DURING_DEPLOYMENT` stays
+disabled.
 
-## Entra-based ZIP deployment from a private path
+## Deploy through private SCM
 
-Prerequisites:
+The Web App must already exist. Use its resource group and app name from the
+deployment outputs. The release identity needs app-scoped publish permissions;
+infrastructure deployment rights and application-release rights should be
+considered separately.
 
-- The selected Web App target already exists; use its reviewed resource group and app name, never guessed identifiers.
-- The deployment actor has narrowly scoped app deployment permissions, including the relevant publish operation, through an approved Entra identity. Infrastructure ownership does not automatically grant payload-release authority.
-- The existing trusted private runner can resolve and reach **both** `<app>.azurewebsites.net` and `<app>.scm.azurewebsites.net` through the private endpoint.
-- Azure CLI **2.88.0** is available and authenticated through the approved short-lived identity flow. No ambient subscription Owner identity is acceptable.
-- Both SCM and FTP basic publishing remain disabled; site/SCM TLS and public-access controls remain unchanged.
-- The locally staged ZIP's digest matches the independently reviewed release record.
+The release host needs Azure CLI `2.88.0`, short-lived Entra authentication, and
+private DNS/TCP access to both `<app>.azurewebsites.net` and
+`<app>.scm.azurewebsites.net`. It does not need publishing profiles, FTP, SAS,
+client secrets, or a persistent subscription Owner identity. Keep site/SCM TLS,
+basic-publishing, and public-access settings unchanged.
 
-On the trusted private release runner, after its approved Entra login and artifact transfer:
+After transferring the ZIP to the private release host, verify its digest and deploy:
 
 ```powershell
 $resourceGroup = '<reviewed-target-resource-group>'
@@ -63,11 +86,19 @@ Invoke-RestMethod "https://$appName.azurewebsites.net/healthz"
 Invoke-RestMethod "https://$appName.azurewebsites.net/"
 ```
 
-Inspect DNS results: the complete resolution chain must end at the approved private endpoint address. The connectivity commands are Windows-specific; use equivalent DNS/TCP checks on a Linux private runner. Do not log tokens or enable Azure CLI debug traces in public jobs.
+The DNS results should end at the site's private endpoint address. These DNS/TCP
+commands are Windows-specific; use equivalent tools on Linux. Keep tokens and
+Azure CLI debug traces out of public logs.
 
-Microsoft documents Entra fallback for `az webapp deploy` with basic publishing disabled in Azure CLI 2.48.1 and later. The selected 2.88.0 pin meets that version prerequisite; **this repository has not thereby proven live authorization, SCM reachability, or successful ZIP deployment**. If authentication fails, inspect identity scope, federated subject/audience, app publish permissions, and DNS/routes. Never re-enable basic publishing to make the demo pass.
+Microsoft supports Entra fallback for `az webapp deploy` with basic publishing
+disabled from Azure CLI 2.48.1 onward. The pinned `2.88.0` meets that requirement.
+If deployment fails, check federation, publish permissions, DNS, and routes while
+retaining the access settings. Live authorization and SCM connectivity still need
+to be verified in your environment.
 
-Archive the sanitized release result separately from raw deployment logs. Also test that an ordinary Internet client cannot access the site or SCM. A private-endpoint route and a health response are different checks.
+Retain the release result separately from sensitive raw logs. Test both the
+private application response and denial from an Internet client, including SCM:
+successful private access alone does not verify public-access restrictions.
 
 ## Sources
 
