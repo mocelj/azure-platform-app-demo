@@ -1,0 +1,7 @@
+{
+  "schemaVersion": "1.0",
+  "platformApp": "storage",
+  "name": "ledger",
+  "environment": "demo",
+  "size": "small"
+}

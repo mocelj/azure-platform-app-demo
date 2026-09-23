@@ -1,0 +1,44 @@
+name: Developer request validation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  platform:
+    uses: mocelj/azure-platform-catalog/.github/workflows/reusable-validate.yml@f9c8500be1f29edeedaef0eebdc6a87c1155a571 # catalog 0.1.0
+    with:
+      catalog_sha: f9c8500be1f29edeedaef0eebdc6a87c1155a571
+  sample:
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: samples/web-app
+    steps:
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24.18.0
+          cache: npm
+          cache-dependency-path: samples/web-app/package-lock.json
+      - run: npm ci --ignore-scripts --no-audit --no-fund
+      - run: npm test
+      - run: npm run check
+  validate:
+    if: always()
+    needs: [platform, sample]
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Require both offline checks
+        env:
+          PLATFORM_RESULT: ${{ needs.platform.result }}
+          SAMPLE_RESULT: ${{ needs.sample.result }}
+        run: |
+          if [[ "$PLATFORM_RESULT" != "success" || "$SAMPLE_RESULT" != "success" ]]; then
+            echo "Configuration or application validation did not pass." >&2
+            exit 1
+          fi
+          echo "Approved configuration and sample checks passed. No Azure operation was performed."

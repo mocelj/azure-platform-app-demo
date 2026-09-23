@@ -1,0 +1,17 @@
+{
+  "name": "platform-demo-web-app",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Dependency-free hello-world payload for the approved Web App platform app",
+  "type": "module",
+  "license": "MIT",
+  "engines": {
+    "node": "24.18.0"
+  },
+  "packageManager": "npm@11.16.0",
+  "scripts": {
+    "start": "node server.js",
+    "test": "node --test",
+    "check": "node --check server.js && node --check test/server.test.js"
+  }
+}

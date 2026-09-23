@@ -1,0 +1,6 @@
+# One demo maintainer represents both roles, not independent separation of duties.
+* @mocelj
+/apps/ @mocelj
+/samples/ @mocelj
+/.github/ @mocelj
+/catalog-pin.json @mocelj

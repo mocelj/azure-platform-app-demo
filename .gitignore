@@ -1,0 +1,10 @@
+node_modules/
+.local/
+out/
+.terraform/
+*.tfstate*
+*.tfplan
+*.parameters.json
+*.tfvars*
+*.zip
+.env*
